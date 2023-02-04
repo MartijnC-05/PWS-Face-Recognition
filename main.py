@@ -2,10 +2,11 @@
 
 import os.path
 import datetime
-import subprocess
+import pickle
 import tkinter as tk
 import cv2
 from PIL import Image, ImageTk
+import face_recognition
 import util
 
 class App:
@@ -50,12 +51,8 @@ class App:
         self._label.after(20, self.process_webcam)                                                                                                              # Elke 20 miliseconden wordt een nieuwe afbeelding toegevoegd waardoor het een video beeld wordt
         
     def login(self):
-        unknown_img_path = './.tmp.jpg'
         
-        cv2.imwrite(unknown_img_path, self.most_recent_capture_arr)
-        
-        output = str(subprocess.check_output(['face_recognition', self.db_dir, unknown_img_path]))                                                              # Kijken of de meest recente foto wordt herkend
-        name = output.split(',')[1][:-3]
+        name = util.recognize(self.most_recent_capture_arr, self.db_dir)
         
         if name in ['unknown_person', 'no_persons_found']:
             util.msg_box('Oh no...', 'Unknown user. Please register new user or try again.')                                                                    # Als de persoon niet herkend is krijgt hij een bericht
@@ -64,10 +61,8 @@ class App:
             util.msg_box('Welcome!', 'Welcome, {}.'.format(name))                                                                                               # Welkom bericht
             with open(self.log_path, 'a') as f:                                                                                                                 # Houd een log bestand bij die bijhoudt wie en wanneer iemand is ingelogt
                 f.write('{},{}\n'.format(name, datetime.datetime.now()))
-                f.close
-        
-        os.remove(unknown_img_path)
-    
+                f.close()
+            
     def register_new_user(self):
         self.register_new_user_window = tk.Toplevel(self.main_window)
         self.register_new_user_window.geometry("1200x520+370+120")                                                                                              # Een nieuwe pagina wordt gemaakt voor het opslaan van een nieuw gezicht
@@ -105,7 +100,9 @@ class App:
     def accept_register_new_user(self):
         name = self.entry_text_register_new_user.get(1.0, "end-1c")
         
-        cv2.imwrite(os.path.join(self.db_dir, '{}.jpg'.format(name)), self.register_new_user_capture)                                                           # Afbeelding wordt opgeslagen
+        embeddings = face_recognition.face_encodings(self.register_new_user_capture)[0]
+        file = open(os.path.join(self.db_dir, '{}.pickle'.format(name)), 'wb')
+        pickle.dump(embeddings, file)                                                               # Afbeelding wordt opgeslagen
 
         util.msg_box('Succes!','User was registered succesfully!')                                                                                              # Melding dat alles goed is gegaan
         
@@ -114,3 +111,14 @@ class App:
 if __name__ == "__main__":
     app = App()
     app.start()                                                                                                                                                 # App starten
+
+
+# WEG GONE LOES
+# unknown_img_path = './.tmp.jpg'
+        
+#         cv2.imwrite(unknown_img_path, self.most_recent_capture_arr)
+        
+#         output = str(subprocess.check_output(['face_recognition', self.db_dir, unknown_img_path]))                                                              # Kijken of de meest recente foto wordt herkend !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#         name = output.split(',')[1][:-3]
+#         os.remove(unknown_img_path)
+#         cv2.imwrite(os.path.join(self.db_dir, '{}.jpg'.format(name)), self.register_new_user_capture)
