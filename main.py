@@ -8,6 +8,7 @@ import cv2
 from PIL import Image, ImageTk
 import face_recognition
 import util
+from test import test
 
 class App:
     def __init__(self):
@@ -52,16 +53,28 @@ class App:
         
     def login(self):
         
-        name = util.recognize(self.most_recent_capture_arr, self.db_dir)
+        label = test(                                                                                                                                           # Kijken of het gezicht in de meest recente afbeelding echt is
+                image=self.most_recent_capture_arr,
+                model_dir='C:/Users/Marti/Downloads/face-attendance-system-with-livenessdetection/Silent-Face-Anti-Spoofing-master/resources/anti_spoof_models',
+                device_id=0
+                )
         
-        if name in ['unknown_person', 'no_persons_found']:
-            util.msg_box('Oh nee...', 'Onbekende gebruiker. Registreer een nieuwe gebruiker of probeer het opnieuw.')                                           # Als de persoon niet herkend is krijgt hij een bericht
+        if label == 1:                                                                                                                                          # Als het gezciht echt is gaat het programma verder met het herkennen van het gezicht
+        
+            name = util.recognize(self.most_recent_capture_arr, self.db_dir)
             
+            if name in ['unknown_person', 'no_persons_found']:
+                util.msg_box('Oh nee...', 'Onbekende gebruiker. Registreer een nieuwe gebruiker of probeer het opnieuw.')                                       # Als de persoon niet herkend is krijgt hij een bericht
+                
+            else:
+                util.msg_box('Welkom!', 'Welkom, {}.'.format(name))                                                                                             # Welkom bericht
+                with open(self.log_path, 'a') as f:                                                                                                             # Houd een log bestand bij die bijhoudt wie en wanneer iemand is ingelogt
+                    f.write('{},{}\n'.format(name, datetime.datetime.now()))
+                    f.close()
+                    
         else:
-            util.msg_box('Welkom!', 'Welkom, {}.'.format(name))                                                                                                 # Welkom bericht
-            with open(self.log_path, 'a') as f:                                                                                                                 # Houd een log bestand bij die bijhoudt wie en wanneer iemand is ingelogt
-                f.write('{},{}\n'.format(name, datetime.datetime.now()))
-                f.close()
+            util.msg_box('Oh nee...', 'Dat is geen echt gezicht, mij houdt je niet voor de gek!')                                                               # De gebruiker krijgt een bericht dat het gezicht niet echt is
+        
             
     def register_new_user(self):
         self.register_new_user_window = tk.Toplevel(self.main_window)
