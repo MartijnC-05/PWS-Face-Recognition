@@ -1,5 +1,3 @@
-# video https://youtu.be/z_dbnYHAQYg?t=2098
-
 import os.path
 import datetime
 import pickle
@@ -14,6 +12,7 @@ class App:
     def __init__(self):
         self.main_window = tk.Tk()
         self.main_window.geometry("1200x520+350+100")                                                                                                           # Window maken
+        self.main_window.title("Inloggen")
         
         self.login_button_main_window = util.get_button(self.main_window, 'Inloggen', 'green', self.login)                                                      # Login knop maken
         self.login_button_main_window.place(x=750, y=300)
@@ -71,14 +70,31 @@ class App:
                 with open(self.log_path, 'a') as f:                                                                                                             # Houd een log bestand bij die bijhoudt wie en wanneer iemand is ingelogt
                     f.write('{},{}\n'.format(name, datetime.datetime.now()))
                     f.close()
+                self.ingelogd_menu()                                                                                                                            # NIEUW!
                     
         else:
             util.msg_box('Oh nee...', 'Dat is geen echt gezicht, mij houdt je niet voor de gek!')                                                               # De gebruiker krijgt een bericht dat het gezicht niet echt is
+    
+    def ingelogd_menu(self):
+        name = util.recognize(self.most_recent_capture_arr, self.db_dir)
         
+        self.ingelogd_menu_window = tk.Toplevel(self.main_window)
+        self.ingelogd_menu_window.geometry("1200x520+350+100")
+        self.ingelogd_menu_window.title("Welkom")
+     
+        self.text_label_ingelogd_menu = util.get_text_label(self.ingelogd_menu_window, 'Welkom {}'.format(name))
+        self.text_label_ingelogd_menu.place(x=100, y=75)
+        
+        self.logout_button_ingelogd_menu_window = util.get_button(self.ingelogd_menu_window, 'Uitloggen', 'red', self.logout_ingelogd_menu)
+        self.logout_button_ingelogd_menu_window.place(x=100, y=300)
+        
+    def logout_ingelogd_menu(self):
+        self.ingelogd_menu_window.destroy()
             
     def register_new_user(self):
         self.register_new_user_window = tk.Toplevel(self.main_window)
         self.register_new_user_window.geometry("1200x520+370+120")                                                                                              # Een nieuwe pagina wordt gemaakt voor het opslaan van een nieuw gezicht
+        self.register_new_user_window.title("registreer gebruiker")
         
         self.accept_button_register_new_user_window = util.get_button(self.register_new_user_window, 'Accepteren', 'green', self.accept_register_new_user)      # Accepteer knop maken
         self.accept_button_register_new_user_window.place(x=750, y=300)
